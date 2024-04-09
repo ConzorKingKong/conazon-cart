@@ -1,0 +1,21 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - 5432
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=conazon
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+  cart:
+    build: 
+      dockerfile: Dockerfile
+    ports:
+      - 8082:8082
+    links:
+     - postgres
