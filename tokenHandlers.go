@@ -36,10 +36,12 @@ func validateAndReturnSession(w http.ResponseWriter, r *http.Request) (MyJWT, er
 		case errors.Is(err, http.ErrNoCookie):
 			log.Printf("cookie not found")
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusBadRequest, Message: "cookie not found"})
 		default:
 			log.Printf("Cookie err: %s", err)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusInternalServerError, Message: "server error"})
 		}
 		return MyJWT{}, err
@@ -50,6 +52,7 @@ func validateAndReturnSession(w http.ResponseWriter, r *http.Request) (MyJWT, er
 	if err != nil {
 		log.Printf("Error verifying token: %s", err)
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusUnauthorized, Message: "invalid token"})
 		return MyJWT{}, err
 	}
@@ -61,6 +64,7 @@ func validateAndReturnSession(w http.ResponseWriter, r *http.Request) (MyJWT, er
 	if err != nil {
 		log.Printf("Error decoding token: %s", err)
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusInternalServerError, Message: "internal service error"})
 		return MyJWT{}, err
 	}

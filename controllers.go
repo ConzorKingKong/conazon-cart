@@ -18,6 +18,7 @@ func routeIdHelper(w http.ResponseWriter, r *http.Request) (string, int, error) 
 	if err != nil {
 		log.Printf("Error parsing route id: %s", err)
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusInternalServerError, Message: "Internal Service Error"})
 		return "", 0, err
 	}
@@ -46,6 +47,7 @@ func CartHandler(w http.ResponseWriter, r *http.Request) {
 
 		err = json.NewDecoder(r.Body).Decode(&call)
 		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -57,6 +59,7 @@ func CartHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error connecting to database: %s", err)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusInternalServerError, Message: "internal service error"})
 			return
 		}
@@ -69,7 +72,8 @@ func CartHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error making cart with user id %d - %s", TokenData.Id, err)
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(GenericResponse{Status: 500, Message: "Cart could not be made"})
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusInternalServerError, Message: "Cart could not be made"})
 			return
 		}
 
@@ -80,6 +84,7 @@ func CartHandler(w http.ResponseWriter, r *http.Request) {
 		// add product to cart
 	} else {
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusMethodNotAllowed, Message: "Method Not Allowed"})
 		return
 	}
@@ -102,6 +107,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error connecting to database: %s", err)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusInternalServerError, Message: "internal service error"})
 			return
 		}
@@ -114,6 +120,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error getting cart with id %s - %s", routeId, err)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusNotFound, Message: "Cart not found"})
 			return
 		}
@@ -121,6 +128,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 		if TokenData.Id != cart.UserID {
 			log.Printf("Error: user tried reading cart they don't own")
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusUnauthorized, Message: "Unauthorized"})
 			return
 		}
@@ -141,6 +149,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error connecting to database: %s", err)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusInternalServerError, Message: "internal service error"})
 			return
 		}
@@ -154,6 +163,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error getting cart with id %s - %s", routeId, err)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusNotFound, Message: "Cart not found"})
 			return
 		}
@@ -161,6 +171,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 		if TokenData.Id != cart.UserID {
 			log.Printf("Error: user tried reading cart they don't own")
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusUnauthorized, Message: "Unauthorized"})
 			return
 		}
@@ -168,6 +179,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 		if cart.Status != "active" {
 			log.Printf("Error: do not edit deleted or completed cart")
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusUnauthorized, Message: "Unauthorized"})
 			return
 		}
@@ -185,6 +197,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error getting cart with id %s - %s", routeId, err)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusNotFound, Message: "Cart not found"})
 			return
 		}
@@ -193,6 +206,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error getting cart with id %s - %s", routeId, err)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusNotFound, Message: "Cart not found"})
 			return
 		}
@@ -212,6 +226,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error connecting to database: %s", err)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusInternalServerError, Message: "internal service error"})
 			return
 		}
@@ -225,6 +240,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error getting cart with id %s - %s", routeId, err)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusNotFound, Message: "Cart not found"})
 			return
 		}
@@ -232,6 +248,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 		if TokenData.Id != cart.UserID {
 			log.Printf("Error: user tried reading cart they don't own")
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusUnauthorized, Message: "Unauthorized"})
 			return
 		}
@@ -239,6 +256,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 		if cart.Status == "deleted" {
 			log.Printf("Error: user tried deleting cart they already deleted")
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusUnauthorized, Message: "Error cart already deleted"})
 			return
 		}
@@ -248,6 +266,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error deleting cart with id %s - %s", routeId, err)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusNotFound, Message: "Cart not found"})
 			return
 		}
@@ -257,6 +276,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(parsedRouteId)
 	} else {
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusMethodNotAllowed, Message: "Method Not Allowed"})
 		return
 	}
@@ -278,6 +298,7 @@ func UserId(w http.ResponseWriter, r *http.Request) {
 		if TokenData.Id != parsedRouteId {
 			log.Printf("Error: You are not authorized to delete this user")
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusUnauthorized, Message: "You are not authorized to delete this user"})
 			return
 		}
@@ -286,6 +307,7 @@ func UserId(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error connecting to database: %s", err)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusInternalServerError, Message: "internal service error"})
 			return
 		}
@@ -298,6 +320,7 @@ func UserId(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error getting cart with id %s - %s", routeId, err)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusNotFound, Message: "Cart not found"})
 			return
 		}
@@ -310,6 +333,7 @@ func UserId(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Printf("Error getting cart with id %d - %s", TokenData.Id, err)
 				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusNotFound)
 				json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusNotFound, Message: "Error loading cart"})
 				return
 			}
@@ -321,6 +345,7 @@ func UserId(w http.ResponseWriter, r *http.Request) {
 		if rowSlice == nil {
 			log.Printf("Error: No carts found for user %d", TokenData.Id)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusNotFound, Message: "No cart found for user"})
 			return
 		}
@@ -339,6 +364,7 @@ func UserId(w http.ResponseWriter, r *http.Request) {
 		if TokenData.Id != parsedRouteId {
 			log.Printf("Error: You are not authorized to update this user")
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusUnauthorized, Message: "You are not authorized to update this user"})
 			return
 		}
@@ -347,6 +373,7 @@ func UserId(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error connecting to database: %s", err)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusInternalServerError, Message: "internal service error"})
 			return
 		}
@@ -358,6 +385,7 @@ func UserId(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Error updating cart with id %s - %s", routeId, err)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusNotFound, Message: "Error updating cart"})
 			return
 		}
@@ -367,6 +395,7 @@ func UserId(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		json.NewEncoder(w).Encode(GenericResponse{Status: http.StatusMethodNotAllowed, Message: "Method Not Allowed"})
 		return
 	}
