@@ -51,7 +51,20 @@ type MyJWT struct {
 	Id int `json:"id"`
 }
 
-type GenericResponse struct {
+type Response struct {
 	Status  int    `json:"status"`
 	Message string `json:"message"`
+	Data    string `json:"data"`
+}
+
+type UserCartResponse struct {
+	Status  int    `json:"status"`
+	Message string `json:"message"`
+	Data    []Cart `json:"data"`
+}
+
+type CartResponse struct {
+	Status  int    `json:"status"`
+	Message string `json:"message"`
+	Data    Cart   `json:"data"`
 }
