@@ -10,3 +10,5 @@ CREATE TABLE cart.cart (
 );
 CREATE UNIQUE INDEX idx_user_product ON cart.cart (user_id, product_id) WHERE status = 'active';
 insert into cart.cart (user_id, product_id, quantity, status) values (1, 1, 1, 'active');
+insert into cart.cart (user_id, product_id, quantity, status) values (1, 2, 1, 'active');
+insert into cart.cart (user_id, product_id, quantity, status) values (1, 3, 1, 'active');
