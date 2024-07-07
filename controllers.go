@@ -77,9 +77,7 @@ func CartHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// return data
-		json.NewEncoder(w).Encode(id)
-
-		// add product to cart
+		json.NewEncoder(w).Encode(CartResponse{Status: http.StatusOK, Message: "Success", Data: Cart{ID: id, UserID: TokenData.Id, ProductID: call.ProductId, Quantity: call.Quantity, Status: "active"}})
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		json.NewEncoder(w).Encode(Response{Status: http.StatusMethodNotAllowed, Message: "Method Not Allowed", Data: ""})
