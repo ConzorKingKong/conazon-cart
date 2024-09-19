@@ -321,9 +321,7 @@ func UserId(w http.ResponseWriter, r *http.Request) {
 		defer rows.Close()
 
 		if rowSlice == nil {
-			log.Printf("Error: No carts found for user %d", TokenData.Id)
-			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(Response{Status: http.StatusNotFound, Message: "No cart found for user", Data: ""})
+			json.NewEncoder(w).Encode(UserCartResponse{Status: http.StatusOK, Message: "No cart found for user", Data: []Cart{}})
 			return
 		}
 
