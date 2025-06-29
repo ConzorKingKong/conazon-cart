@@ -28,7 +28,7 @@ func routeIdHelper(w http.ResponseWriter, r *http.Request) (string, int, error) 
 func Root(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotFound)
-	json.NewEncoder(w).Encode(Response{Status: http.StatusNotFound, Message: "invalid path" + r.URL.RequestURI(), Data: ""})
+	json.NewEncoder(w).Encode(Response{Status: http.StatusNotFound, Message: "invalid path " + r.URL.RequestURI(), Data: ""})
 }
 
 func CartHandler(w http.ResponseWriter, r *http.Request) {
