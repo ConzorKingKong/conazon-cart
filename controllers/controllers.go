@@ -8,9 +8,9 @@ import (
 	"net/http"
 
 	"github.com/conzorkingkong/conazon-cart/config"
-	"github.com/conzorkingkong/conazon-cart/helpers"
 	"github.com/conzorkingkong/conazon-cart/token"
 	"github.com/conzorkingkong/conazon-cart/types"
+	authhelpers "github.com/conzorkingkong/conazon-users-and-auth/helpers"
 	authtypes "github.com/conzorkingkong/conazon-users-and-auth/types"
 	"github.com/jackc/pgx/v5"
 )
@@ -71,7 +71,7 @@ func CartHandler(w http.ResponseWriter, r *http.Request) {
 
 func CartId(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	routeId, _, err := helpers.RouteIdHelper(w, r)
+	routeId, _, err := authhelpers.RouteIdHelper(w, r)
 	if err != nil {
 		return
 	}
@@ -249,7 +249,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 
 func UserId(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	routeId, parsedRouteId, err := helpers.RouteIdHelper(w, r)
+	routeId, parsedRouteId, err := authhelpers.RouteIdHelper(w, r)
 	if err != nil {
 		return
 	}

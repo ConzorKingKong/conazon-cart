@@ -8,6 +8,7 @@ import (
 
 	"github.com/conzorkingkong/conazon-cart/config"
 	"github.com/conzorkingkong/conazon-cart/controllers"
+	authcontrollers "github.com/conzorkingkong/conazon-users-and-auth/controllers"
 	"github.com/joho/godotenv"
 )
 
@@ -34,7 +35,7 @@ func main() {
 		PORT = "8082"
 	}
 
-	http.HandleFunc("/", controllers.Root)
+	http.HandleFunc("/", authcontrollers.Root)
 	http.HandleFunc("/cart/", controllers.CartHandler)
 	http.HandleFunc("/cart/{id}", controllers.CartId)
 	http.HandleFunc("/cart/user/{id}", controllers.UserId)
