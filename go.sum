@@ -2,10 +2,8 @@ cloud.google.com/go/compute v1.20.1 h1:6aKEtlUiwEpJzM001l0yFkpXmUVXaN8W+fbkb2AZN
 cloud.google.com/go/compute v1.20.1/go.mod h1:4tCnrn48xsqlwSAiLf1HXMQk8CONslYbdiEZc9FEIbM=
 cloud.google.com/go/compute/metadata v0.2.3 h1:mg4jlk7mCAj6xXp9UJ4fjI9VUI5rubuGBW5aJ7UnBMY=
 cloud.google.com/go/compute/metadata v0.2.3/go.mod h1:VAV5nSsACxMJvgaAuX6Pk2AawlZn8kiOGuCv6gTkwuA=
-github.com/conzorkingkong/conazon-products v0.0.0-20250630035309-c114af503d56 h1:UzEC0umXR+Zedtgm0PB+a7G7KSIiKarO+oTWwTwraHY=
-github.com/conzorkingkong/conazon-products v0.0.0-20250630035309-c114af503d56/go.mod h1:ayzd6rByAuJOMDO1DtdHejJLf5TEbIIH5asjjcnXPa0=
-github.com/conzorkingkong/conazon-users-and-auth v0.0.0-20250630010039-47c5183eeb98 h1:cGg35W/dOveMGJnuQ+pIZ5AmkgjhexA4DzEza7/nzJQ=
-github.com/conzorkingkong/conazon-users-and-auth v0.0.0-20250630010039-47c5183eeb98/go.mod h1:YBRqSkW/FA955p7YAvHVULm0WJoyJo8+ilh6HVKlN40=
+github.com/conzorkingkong/conazon-users-and-auth v0.0.0-20250630163739-9381b5e893d7 h1:hAVEdTNLuhCEH47NH8khsTOOz2dY64tTBrQ18k/C74g=
+github.com/conzorkingkong/conazon-users-and-auth v0.0.0-20250630163739-9381b5e893d7/go.mod h1:YBRqSkW/FA955p7YAvHVULm0WJoyJo8+ilh6HVKlN40=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -16,6 +14,8 @@ github.com/golang/protobuf v1.5.0/go.mod h1:FsONVRAS9T7sI+LIUmWTfcYkHO4aIWwzhcaS
 github.com/golang/protobuf v1.5.3 h1:KhyjKVUg7Usr/dYsdSqoFveMYd5ko72D+zANwlG1mmg=
 github.com/golang/protobuf v1.5.3/go.mod h1:XVQd3VNwM+JqD3oG2Ue2ip4fOMUkwXdXDdiuN0vRsmY=
 github.com/google/go-cmp v0.5.5/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
+github.com/google/go-cmp v0.5.9 h1:O2Tfq5qg4qc4AmwVlvv0oLiVAGB7enBSJ2x2DqQFi38=
+github.com/google/go-cmp v0.5.9/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=
 github.com/jackc/pgpassfile v1.0.0/go.mod h1:CEx0iS5ambNFdcRtxPj5JhEz+xB6uRky5eyVu/W2HEg=
 github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=
