@@ -6,11 +6,13 @@ This is the cart endpoint for the Conazon project.
 
 To test locally, setup a `.env` file in the root directory with the following variables:
 
-`JWTSECRET` - JWT secret. Must match the secret used in the auth service REQUIRED
-`DATABASEURL` - Url to postgres database. REQUIRED
-`PORT` - Port to run server on. Defaults to 8082
+```
+JWTSECRET - JWT secret. Must match the secret used in the auth service REQUIRED
+DATABASEURL - Url to postgres database. REQUIRED
+PORT - Port to run server on. Defaults to 8082
+```
 
-Datbase url should be formatted like this if using `docker-compose` - 'host=postgres port=5432 user=postgres dbname=conazon sslmode=disable'
+Datbase url should be formatted like this if using `docker-compose` - `'host=postgres port=5432 user=postgres dbname=conazon sslmode=disable'`
 
 Then run:
 
