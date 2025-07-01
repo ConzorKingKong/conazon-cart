@@ -36,7 +36,7 @@ func CartHandler(w http.ResponseWriter, r *http.Request) {
 
 		rows, err := conn.Query(context.Background(), "select id, user_id, product_id, quantity, status from cart.cart where user_id=$1 and status = 'active'", TokenData.Id)
 		if err != nil {
-			log.Printf("Error getting cart with id %s - %s", TokenData.Id, err)
+			log.Printf("Error getting cart with id %d - %s", TokenData.Id, err)
 			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusNotFound, Message: "Cart not found", Data: ""})
 			return
