@@ -26,22 +26,22 @@ GET - Catch all 404
 
 - /cart
 
-POST - Add items to cart
+GET - get all active carts for user PROTECTED
+
+POST - create new cart/item combo PROTECTED
 
 {"product_id": INT, "quantity": INT}
 
+PATCH - mark all active items as purchased PROTECTED (This is very illegal and will be changed later to take a userId and be done by the checkout microservice)
+
+DELETE - delete all active cart/item combos for user PROTECTED
+
 - /cart/{id}
 
-GET - Returns cart id entry
+GET - Returns cart id entry (see if cart/item combo is active or inactive) PROTECTED
 
-PATCH - Updates item in cart
+PATCH - Updates item quantity in cart PROTECTED
 
 {"quantity": INT}
 
 DELETE - Deletes item from cart (sets status to deleted)
-
-- /cart/user/{id}
-
-GET - get all active items in users cart
-
-PUT - Move all active cart items to purchased after purchase

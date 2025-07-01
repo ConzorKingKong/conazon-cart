@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -17,18 +16,64 @@ import (
 
 func CartHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if r.Method == "POST" {
+
+	// GET CURRENT USERS CARTS (carts+items that are active)
+	if r.Method == "GET" {
 		TokenData, err := token.ValidateAndReturnSession(w, r)
 		if err != nil {
 			return
 		}
 
-		type Call struct {
-			ProductId int `json:"product_id"`
-			Quantity  int `json:"quantity"`
+		conn, err := pgx.Connect(context.Background(), config.DatabaseURLEnv)
+		if err != nil {
+			log.Printf("Error connecting to database: %s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusInternalServerError, Message: "internal service error", Data: ""})
+			return
 		}
 
-		call := Call{}
+		defer conn.Close(context.Background())
+
+		rows, err := conn.Query(context.Background(), "select id, user_id, product_id, quantity, status from cart.cart where user_id=$1 and status = 'active'", TokenData.Id)
+		if err != nil {
+			log.Printf("Error getting cart with id %s - %s", TokenData.Id, err)
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusNotFound, Message: "Cart not found", Data: ""})
+			return
+		}
+
+		var rowSlice []types.Cart
+
+		for rows.Next() {
+			var cart types.Cart
+			err = rows.Scan(&cart.ID, &cart.UserID, &cart.ProductID, &cart.Quantity, &cart.Status)
+			if err != nil {
+				log.Printf("Error getting cart with id %d - %s", TokenData.Id, err)
+				w.WriteHeader(http.StatusNotFound)
+				json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusNotFound, Message: "Error loading cart", Data: ""})
+				return
+			}
+			rowSlice = append(rowSlice, cart)
+		}
+
+		defer rows.Close()
+
+		if rowSlice == nil {
+			json.NewEncoder(w).Encode(types.UserCartResponse{Status: http.StatusOK, Message: "No cart found for user", Data: []types.Cart{}})
+			return
+		}
+
+		json.NewEncoder(w).Encode(types.UserCartResponse{Status: http.StatusOK, Message: "Success", Data: rowSlice})
+
+		// CREATE CART with items
+	} else if r.Method == "POST" {
+
+		TokenData, err := token.ValidateAndReturnSession(w, r)
+		if err != nil {
+			return
+		}
+
+		call := types.Call{}
 
 		err = json.NewDecoder(r.Body).Decode(&call)
 		if err != nil {
@@ -36,9 +81,6 @@ func CartHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
-		// Do something with the Person struct...
-		fmt.Printf("Call: %+v \n", call)
 
 		conn, err := pgx.Connect(context.Background(), config.DatabaseURLEnv)
 		if err != nil {
@@ -60,8 +102,68 @@ func CartHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// return data
 		json.NewEncoder(w).Encode(types.CartResponse{Status: http.StatusOK, Message: "Success", Data: types.Cart{ID: id, UserID: TokenData.Id, ProductID: call.ProductId, Quantity: call.Quantity, Status: "active"}})
+
+		// CHECKOUT PROCESS CALL TO MARK ACTIVE CARTS AS PURCHASED
+	} else if r.Method == "PATCH" {
+
+		TokenData, err := token.ValidateAndReturnSession(w, r)
+		if err != nil {
+			return
+		}
+
+		// make database call
+		conn, err := pgx.Connect(context.Background(), config.DatabaseURLEnv)
+		if err != nil {
+			log.Printf("Error connecting to database: %s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusInternalServerError, Message: "internal service error", Data: ""})
+			return
+		}
+
+		defer conn.Close(context.Background())
+
+		_, err = conn.Exec(context.Background(), "update cart.cart set status='purchased' where user_id=$1 and status='active'", TokenData.Id)
+
+		if err != nil {
+			log.Printf("Error updating cart with id %d - %s", TokenData.Id, err)
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusNotFound, Message: "Error updating cart", Data: ""})
+			return
+		}
+
+		json.NewEncoder(w).Encode(authtypes.Response{Status: 200, Message: "cart status change to purchased completed", Data: ""})
+
+		// DELETE ALL ACTIVE CART/ITEM COMBOS
+	} else if r.Method == "DELETE" {
+
+		TokenData, err := token.ValidateAndReturnSession(w, r)
+		if err != nil {
+			return
+		}
+
+		// make database call
+		conn, err := pgx.Connect(context.Background(), config.DatabaseURLEnv)
+		if err != nil {
+			log.Printf("Error connecting to database: %s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusInternalServerError, Message: "internal service error", Data: ""})
+			return
+		}
+
+		defer conn.Close(context.Background())
+
+		// delete cart
+		_, err = conn.Exec(context.Background(), "update cart.cart set status = 'deleted' where user_id=$1 and status=$2", TokenData.Id, "active")
+		if err != nil {
+			log.Printf("Error deleting carts for user %d - %s", TokenData.Id, err)
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusNotFound, Message: "Cart not found", Data: ""})
+			return
+		}
+
+		json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusOK, Message: "Cart Deleted", Data: ""})
+
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusMethodNotAllowed, Message: "Method Not Allowed", Data: ""})
@@ -76,6 +178,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// GET cart by id, regardless of status
 	if r.Method == "GET" {
 		TokenData, err := token.ValidateAndReturnSession(w, r)
 		if err != nil {
@@ -110,12 +213,11 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// return data
-		// json.NewEncoder(w).Encode(cart)
 		json.NewEncoder(w).Encode(types.CartResponse{Status: http.StatusOK, Message: "Success", Data: cart})
 
+		// update quantity of product in active cart
 	} else if r.Method == "PATCH" {
-		// update quantity of product in cart
+
 		TokenData, err := token.ValidateAndReturnSession(w, r)
 		if err != nil {
 			return
@@ -182,11 +284,11 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// return this cart or the whole cart???
-		// json.NewEncoder(w).Encode(cart)
 		json.NewEncoder(w).Encode(types.CartResponse{Status: http.StatusOK, Message: "Success", Data: cart})
-	} else if r.Method == "DELETE" {
+
 		// set cart status to deleted
+	} else if r.Method == "DELETE" {
+
 		TokenData, err := token.ValidateAndReturnSession(w, r)
 		if err != nil {
 			return
@@ -228,7 +330,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// call becomes change quantity
+		// delete cart
 		_, err = conn.Exec(context.Background(), "update cart.cart set status = 'deleted' where id=$1", routeId)
 		if err != nil {
 			log.Printf("Error deleting cart with id %s - %s", routeId, err)
@@ -237,117 +339,7 @@ func CartId(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// return whole cart or nothing???
-		// json.NewEncoder(w).Encode(parsedRouteId)
 		json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusOK, Message: "Cart Deleted", Data: ""})
-	} else {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusMethodNotAllowed, Message: "Method Not Allowed", Data: ""})
-		return
-	}
-}
-
-func UserId(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	routeId, parsedRouteId, err := authhelpers.RouteIdHelper(w, r)
-	if err != nil {
-		return
-	}
-
-	if r.Method == "GET" {
-		// get all cart items for user
-		TokenData, err := token.ValidateAndReturnSession(w, r)
-		if err != nil {
-			return
-		}
-
-		if TokenData.Id != parsedRouteId {
-			log.Printf("Error: You are not authorized to get this users cart")
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusUnauthorized, Message: "You are not authorized to get this users cart", Data: ""})
-			return
-		}
-		// make database call
-		conn, err := pgx.Connect(context.Background(), config.DatabaseURLEnv)
-		if err != nil {
-			log.Printf("Error connecting to database: %s", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusInternalServerError, Message: "internal service error", Data: ""})
-			return
-		}
-
-		defer conn.Close(context.Background())
-
-		// cart := Cart{}
-		// .Scan(&cart.ID, &cart.UserID, &cart.ProductID, &cart.Quantity, &cart.Status)
-		rows, err := conn.Query(context.Background(), "select id, user_id, product_id, quantity, status from cart.cart where user_id=$1 and status = 'active'", TokenData.Id)
-		if err != nil {
-			log.Printf("Error getting cart with id %s - %s", routeId, err)
-			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusNotFound, Message: "Cart not found", Data: ""})
-			return
-		}
-
-		var rowSlice []types.Cart
-
-		for rows.Next() {
-			var cart types.Cart
-			err = rows.Scan(&cart.ID, &cart.UserID, &cart.ProductID, &cart.Quantity, &cart.Status)
-			if err != nil {
-				log.Printf("Error getting cart with id %d - %s", TokenData.Id, err)
-				w.WriteHeader(http.StatusNotFound)
-				json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusNotFound, Message: "Error loading cart", Data: ""})
-				return
-			}
-			rowSlice = append(rowSlice, cart)
-		}
-
-		defer rows.Close()
-
-		if rowSlice == nil {
-			json.NewEncoder(w).Encode(types.UserCartResponse{Status: http.StatusOK, Message: "No cart found for user", Data: []types.Cart{}})
-			return
-		}
-
-		// return data
-		// json.NewEncoder(w).Encode(rowSlice)
-		json.NewEncoder(w).Encode(types.UserCartResponse{Status: http.StatusOK, Message: "Success", Data: rowSlice})
-	} else if r.Method == "PUT" {
-		// set all active cart items to purchased
-
-		TokenData, err := token.ValidateAndReturnSession(w, r)
-		if err != nil {
-			return
-		}
-
-		if TokenData.Id != parsedRouteId {
-			log.Printf("Error: You are not authorized to update this user")
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusUnauthorized, Message: "You are not authorized to update this user", Data: ""})
-			return
-		}
-		// make database call
-		conn, err := pgx.Connect(context.Background(), config.DatabaseURLEnv)
-		if err != nil {
-			log.Printf("Error connecting to database: %s", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusInternalServerError, Message: "internal service error", Data: ""})
-			return
-		}
-
-		defer conn.Close(context.Background())
-
-		_, err = conn.Exec(context.Background(), "update cart.cart set status = 'purchased' where user_id=$1 and status = 'active'", TokenData.Id)
-
-		if err != nil {
-			log.Printf("Error updating cart with id %s - %s", routeId, err)
-			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusNotFound, Message: "Error updating cart", Data: ""})
-			return
-		}
-
-		json.NewEncoder(w).Encode(authtypes.Response{Status: 200, Message: "cart purchase completed", Data: ""})
-
 	} else {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		json.NewEncoder(w).Encode(authtypes.Response{Status: http.StatusMethodNotAllowed, Message: "Method Not Allowed", Data: ""})

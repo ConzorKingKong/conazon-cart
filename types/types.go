@@ -19,3 +19,8 @@ type CartResponse struct {
 	Message string `json:"message"`
 	Data    Cart   `json:"data"`
 }
+
+type Call struct {
+	ProductId int `json:"product_id"`
+	Quantity  int `json:"quantity"`
+}
